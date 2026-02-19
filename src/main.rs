@@ -15,7 +15,7 @@ use futures_util::future::FutureExt;
 // use crate::auth::{login, authenticate_jwt};
 
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
-use login_orm::{add, establish_connection, models::Post, schema::posts::{self, published}};
+use login_orm::{add, establish_connection, get_user_roles, models::Post, schema::posts::{self, published}};
 // use login_orm::{add, establish_connection, models::Post};
 
 use self::models::*;
@@ -72,6 +72,8 @@ async fn hello_world() -> impl Responder {
         config.db_name
     );
 
+    roles_example();
+
     HttpResponse::Ok().body(response_body)
 }
 
@@ -110,6 +112,22 @@ fn posts_table_example() -> Vec<Post> {
     }
 
     results
+}
+
+fn roles_example() {
+    let connection = &mut establish_connection();
+
+    //let mut connection = establish_connection();  // La conexión ahora es mutable
+
+
+    match get_user_roles(connection, 1) {     // Pasar la conexión mutable
+        Ok(roles) => {
+            println!("Roles for user: {:?}", roles);
+        }
+        Err(err) => {
+            println!("Error fetching user roles: {}", err);
+        }
+    }
 }
 
 #[actix_web::main]

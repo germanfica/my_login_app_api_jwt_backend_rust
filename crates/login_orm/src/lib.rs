@@ -42,3 +42,21 @@ mod tests {
         assert_eq!(result, 4);
     }
 }
+
+
+use diesel::prelude::*;
+use diesel::result::Error;
+use crate::models::{User, Role, Privilege};
+use crate::schema::{user::dsl as user_dsl, role::dsl as role_dsl, privileges::dsl as privileges_dsl};
+
+// Función para obtener los roles de un usuario por su ID
+pub fn get_user_roles(conn: &mut MysqlConnection, user_id: i32) -> Result<Vec<String>, Error> {
+    // Consultar la tabla de privilegios para obtener los roles asociados a un usuario
+    let roles = privileges_dsl::privileges
+        .filter(privileges_dsl::userId.eq(user_id))  // Filtrar por ID de usuario
+        .inner_join(role_dsl::role)                   // Hacer el join con la tabla `role`
+        .select(role_dsl::name)                       // Seleccionar el nombre de los roles
+        .load::<String>(conn)?;                       // Ejecutar la consulta y obtener los resultados
+
+    Ok(roles)
+}
